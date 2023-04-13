@@ -165,6 +165,148 @@ require('ui-contextmenu');
             modifyChild: function(event, data) {
               data.tree.info(event.type, data);
             },
+
+            //events
+            // --- Tree events -------------------------------------------------
+            blurTree: function(event, data) {
+              logEvent(event, data);
+            },
+            create: function(event, data) {
+              logEvent(event, data);
+            },
+            init: function(event, data, flag) {
+              logEvent(event, data, "flag=" + flag);
+            },
+            focusTree: function(event, data) {
+              logEvent(event, data);
+            },
+            restore: function(event, data) {
+              logEvent(event, data);
+            },
+            // --- Node events -------------------------------------------------
+            activate: function(event, data) {
+              logEvent(event, data);
+              var node = data.node;
+              // acces node attributes
+              $("#echoActive").text(node.title);
+              if( !$.isEmptyObject(node.data) ){
+      //					alert("custom node data: " + JSON.stringify(node.data));
+              }
+            },
+            beforeActivate: function(event, data) {
+              logEvent(event, data, "current state=" + data.node.isActive());
+              // return false to prevent default behavior (i.e. activation)
+      //              return false;
+            },
+            beforeExpand: function(event, data) {
+              logEvent(event, data, "current state=" + data.node.isExpanded());
+              // return false to prevent default behavior (i.e. expanding or collapsing)
+      //				return false;
+            },
+            beforeSelect: function(event, data) {
+      //				console.log("select", event.originalEvent);
+              logEvent(event, data, "current state=" + data.node.isSelected());
+              // return false to prevent default behavior (i.e. selecting or deselecting)
+      //				if( data.node.isFolder() ){
+      //					return false;
+      //				}
+            },
+            blur: function(event, data) {
+              logEvent(event, data);
+              $("#echoFocused").text("-");
+            },
+            click: function(event, data) {
+              logEvent(event, data, ", targetType=" + data.targetType);
+              // return false to prevent default behavior (i.e. activation, ...)
+              //return false;
+            },
+            collapse: function(event, data) {
+              logEvent(event, data);
+            },
+            createNode: function(event, data) {
+              // Optionally tweak data.node.span or bind handlers here
+              logEvent(event, data);
+            },
+            dblclick: function(event, data) {
+              logEvent(event, data);
+      //				data.node.toggleSelect();
+            },
+            deactivate: function(event, data) {
+              logEvent(event, data);
+              $("#echoActive").text("-");
+            },
+            expand: function(event, data) {
+              logEvent(event, data);
+            },
+            enhanceTitle: function(event, data) {
+              logEvent(event, data);
+            },
+            focus: function(event, data) {
+              logEvent(event, data);
+              $("#echoFocused").text(data.node.title);
+            },
+            keydown: function(event, data) {
+              logEvent(event, data);
+              switch( event.which ) {
+              case 32: // [space]
+                data.node.toggleSelected();
+                return false;
+              }
+            },
+            keypress: function(event, data) {
+              // currently unused
+              logEvent(event, data);
+            },
+            lazyLoad: function(event, data) {
+              logEvent(event, data);
+              // return children or any other node source
+              data.result = {url: "ajax-sub2.json"};
+      //				data.result = [
+      //					{title: "A Lazy node", lazy: true},
+      //					{title: "Another node", selected: true}
+      //					];
+            },
+            loadChildren: function(event, data) {
+              logEvent(event, data);
+            },
+            loadError: function(event, data) {
+              logEvent(event, data);
+            },
+            modifyChild: function(event, data) {
+              logEvent(event, data, "operation=" + data.operation +
+                ", child=" + data.childNode);
+            },
+            postProcess: function(event, data) {
+              logEvent(event, data);
+              // either modify the Ajax response directly
+              data.response[0].title += " - hello from postProcess";
+              // or setup and return a new response object
+      //				data.result = [{title: "set by postProcess"}];
+            },
+            renderNode: function(event, data) {
+              // Optionally tweak data.node.span
+      //              $(data.node.span).text(">>" + data.node.title);
+              logEvent(event, data);
+            },
+            renderTitle: function(event, data) {
+              // NOTE: may be removed!
+              // When defined, must return a HTML string for the node title
+              logEvent(event, data);
+      //				return "new title";
+            },
+            select: function(event, data) {
+              logEvent(event, data, "current state=" + data.node.isSelected());
+              var s = data.tree.getSelectedNodes().join(", ");
+              $("#echoSelected").text(s);
+            }
+          })
+          .on("fancytreeactivate", function(event, data){
+            // alternative way to bind to 'activate' event
+      //		    logEvent(event, data);
+          }).on("mouseenter mouseleave", ".fancytree-title", function(event){
+            // Add a hover handler to all node titles (using event delegation)
+            var node = $.ui.fancytree.getNode(event);
+            node.info(event.type);
           })
           .on("nodeCommand", function(event, data) {
             // Custom event handler that is triggered by keydown-handler and
@@ -641,4 +783,69 @@ $(function(){
       tree.clearFilter();
     }
   });
+
+
+
+
+  addSampleButton({
+    label: "destroy all",
+    newline: false,
+    code: function(){
+      $(":ui-fancytree").fancytree("destroy");
+    }
+  });
+  addSampleButton({
+    label: "init all",
+    newline: false,
+    code: function(){
+      $(".sampletree").fancytree();
+    }
+  });
+  addSampleButton({
+    label: "Reload() #1",
+    newline: false,
+    code: function(){
+      $.ui.fancytree.getTree("#tree").reload([
+        {title: "node1"},
+        {title: "node2"}
+      ]).done(function(){
+        alert("reloaded");
+      });
+    }
+  });
+  addSampleButton({
+    label: "Set 'source' option (all)",
+    newline: false,
+    code: function(){
+      $(".sampletree").fancytree("option", "source", [
+        {title: "node1"}
+      ]);
+    }
+  });
+
+
+
+  addSampleButton({
+		label: "(De)Select active node",
+		newline: false,
+		code: function(){
+			var node = $.ui.fancytree.getTree("#tree").getActiveNode();
+			node.setSelected( !node.isSelected() );
+		}
+	});
+	addSampleButton({
+		label: "Remove active node",
+		newline: false,
+		code: function(){
+			var node = $.ui.fancytree.getTree("#tree").getActiveNode();
+			node.remove();
+		}
+	});
+
 });
+
+function logEvent(event, data, msg){
+  //        var args = Array.isArray(args) ? args.join(", ") :
+      msg = msg ? ": " + msg : "";
+      $.ui.fancytree.info("Event('" + event.type + "', node=" + data.node + ")" + msg);
+    }
